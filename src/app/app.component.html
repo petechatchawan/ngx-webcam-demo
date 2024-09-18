@@ -1,3 +1,30 @@
-<ion-app>
-  <ion-router-outlet></ion-router-outlet>
-</ion-app>
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Controller Modal</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div style="overflow-y: auto">
+    <ion-button expand="block" (click)="openModal()">Open</ion-button>
+    <p>{{ message }}</p>
+
+    <br />
+    <h1>Device Detection</h1>
+    <div *ngIf="deviceInfo">
+      <p><strong>Operating System:</strong> {{ deviceInfo.os }}</p>
+      <p><strong>OS Version:</strong> {{ deviceInfo.os_version }}</p>
+      <p><strong>Browser:</strong> {{ deviceInfo.browser }}</p>
+      <p><strong>Browser Version:</strong> {{ deviceInfo.browser_version }}</p>
+      <p><strong>Device Type:</strong> {{ deviceInfo.device }}</p>
+      <p><strong>RAM:</strong> {{ deviceInfo.ram }}</p>
+      <p><strong>CPU Cores:</strong> {{ deviceInfo.cpuCores }}</p>
+      <p><strong>Device Model:</strong> {{ deviceInfo.device_model }}</p>
+      <p><strong>GPU:</strong> {{ deviceInfo.gpu }}</p>
+      <p><strong>Storage:</strong> {{ deviceInfo.storage | async }}</p>
+      <p>
+        <strong>Display Resolution:</strong> {{ deviceInfo.display_resolution }}
+      </p>
+      <p><strong>Orientation:</strong> {{ deviceInfo.orientation }}</p>
+    </div>
+  </div>
+</ion-content>
