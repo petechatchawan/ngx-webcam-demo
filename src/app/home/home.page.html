@@ -13,11 +13,14 @@
 <ion-content class="ion-padding">
   <div>
     <h2>Webcam</h2>
-    <div class="webcam-wrapper">
+
+    <div
+      class="relative w-fit h-fit flex justify-center items-center overflow-hidden"
+    >
+      <!-- Video Element -->
       <video #videoElement autoplay muted playsinline></video>
       <canvas #canvasElement style="display: none"></canvas>
     </div>
-    <button (click)="captureImage()">Capture Image</button>
     <div *ngIf="imageDataUrl">
       <h3>Captured Image:</h3>
       <img [src]="imageDataUrl" alt="Captured Image" />
@@ -27,6 +30,8 @@
 
 <ion-footer>
   <ion-toolbar>
-    <ion-button expand="block">Open</ion-button>
+    <ion-button expand="block" (click)="captureImage()"
+      >Capture Image</ion-button
+    >
   </ion-toolbar>
 </ion-footer>

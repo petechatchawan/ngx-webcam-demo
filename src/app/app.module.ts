@@ -25,7 +25,6 @@ import { HomePage } from './home/home.page';
     NgxWebcamManagementModule,
   ],
   providers: [
-    CameraUtilsService,
     {
       provide: APP_INITIALIZER,
       useFactory: initializeCamera,

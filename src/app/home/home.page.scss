@@ -25,3 +25,36 @@
 #container a {
   text-decoration: none;
 }
+
+.relative {
+  position: relative; /* Allows for positioning child elements */
+}
+
+.w-fit {
+  width: fit-content; /* Width adjusts to fit content */
+}
+
+.h-fit {
+  height: fit-content; /* Height adjusts to fit content */
+}
+
+.flex {
+  display: flex; /* Enables flexbox layout */
+}
+
+.justify-center {
+  justify-content: center; /* Centers items horizontally */
+}
+
+.items-center {
+  align-items: center; /* Centers items vertically */
+}
+
+.overflow-hidden {
+  overflow: hidden; /* Hides overflow content */
+}
+
+.video-element {
+  height: 100%; /* Full height of the parent container */
+  object-fit: contain; /* Maintains aspect ratio while fitting within the container */
+}

@@ -1,13 +1,20 @@
 import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
   Component,
-  ElementRef,
+  ChangeDetectionStrategy,
+  AfterViewInit,
   OnDestroy,
   ViewChild,
+  ElementRef,
 } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { CameraDevice, CameraUtilsService } from 'ngx-webcam-management';
+import {
+  CameraDevice,
+  CameraUtilsService,
+  FacingType,
+  ResolutionPreset,
+  WebcamInitData,
+  WebcamInitError,
+} from 'ngx-webcam-management';
 import { Subject } from 'rxjs';
 
 @Component({
@@ -30,49 +37,83 @@ export class HomePage implements AfterViewInit, OnDestroy {
   ) {}
 
   async ngAfterViewInit(): Promise<void> {
-    await this.setupCamera();
+    await this.initializeCamera();
   }
 
-  public async setupCamera(): Promise<void> {
+  private async initializeCamera(): Promise<void> {
     try {
-      // setup video and canvas
-      const videoEl = this.videoElement.nativeElement;
-      const canvasEl = this.canvasElement.nativeElement;
-
-      // get available cameras
-      const devices = this.cameraUtilsService.getAvailableDevices();
-      if (devices.length === 0) {
+      // Get available cameras
+      const cameraDevices = this.cameraUtilsService.getAvailableDevices();
+      if (cameraDevices.length === 0) {
         throw new Error('No camera devices found');
       }
 
-      // select the camera device
-      const selectedCamera = await this.selectCamera(devices);
+      // Select the camera device
+      const selectedCamera = await this.selectCamera();
+      if (!selectedCamera) {
+        throw new Error('No camera selected');
+      }
 
-      // start the camera
-      await this.cameraUtilsService.startCamera(
-        videoEl,
-        canvasEl,
-        selectedCamera
-      );
+      // Create config
+      const config: WebcamInitData = {
+        device: selectedCamera,
+        element: {
+          video: this.videoElement.nativeElement,
+          canvas: this.canvasElement.nativeElement,
+        },
+        config: {
+          enabledAudio: false,
+          present: ResolutionPreset.VeryHigh,
+          strictAspectRatio: true,
+        },
+      };
 
-      // set current media stream to video element
+      // Ensure the resolution preset exists
+      const allResolutions = this.cameraUtilsService.getAllResolutionsPresets();
+      if (!(config.config.present in allResolutions)) {
+        throw new WebcamInitError(
+          'Provided resolution preset does not match any available resolutions'
+        );
+      }
+
+      // Start the camera
+      await this.cameraUtilsService.startCamera(config);
+
+      // Set current media stream to video element source
       const mediaStream = this.cameraUtilsService.getMediaStream();
       if (!mediaStream) {
         throw new Error('Failed to get media stream');
       }
 
-      videoEl.srcObject = mediaStream;
-      videoEl.onloadedmetadata = () => {
-        videoEl.play();
+      this.videoElement.nativeElement.srcObject = mediaStream;
+      this.videoElement.nativeElement.onloadedmetadata = () => {
+        this.videoElement.nativeElement.play();
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error setting up camera:', error);
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Close modal and pass the error message back
+      await this.modalController.dismiss(
+        { errorMessage: error.message },
+        'cancel'
+      );
+
+      if (error instanceof WebcamInitError) {
+        // Handle specific webcam initialization errors here if needed
+        console.warn('Webcam initialization error:', error.message);
+      }
     }
   }
 
-  private async selectCamera(devices: CameraDevice[]): Promise<CameraDevice> {
+  private async selectCamera(): Promise<CameraDevice | null> {
     // Implement logic to select the best camera
-    return devices[0];
+    const caemra = this.cameraUtilsService.selectCamera(FacingType.FRONT);
+    if (!caemra) {
+      throw new Error('No camera found');
+    }
+
+    return caemra;
   }
 
   /**

@@ -9,7 +9,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "docs": "ng build --configuration production --output-path docs  --base-href 'https://petechatchawan.github.io/ngx-webcam-demo/'"
   },
   "private": true,
   "dependencies": {
@@ -28,7 +29,7 @@
     "@capacitor/status-bar": "6.0.1",
     "@ionic/angular": "^8.0.0",
     "ionicons": "^7.0.0",
-    "ngx-webcam-management": "^1.1.1",
+    "ngx-webcam-management": "^1.1.9",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.2"
