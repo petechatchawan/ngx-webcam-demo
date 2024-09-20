@@ -16,6 +16,7 @@ import {
   WebcamInitError,
 } from 'ngx-webcam-management';
 import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-home',
@@ -42,19 +43,9 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   private async initializeCamera(): Promise<void> {
     try {
-      // Get available cameras
-      const cameraDevices = this.cameraUtilsService.getAvailableDevices();
-      if (cameraDevices.length === 0) {
-        throw new Error('No camera devices found');
-      }
-
-      // Select the camera device
       const selectedCamera = await this.selectCamera();
-      if (!selectedCamera) {
-        throw new Error('No camera selected');
-      }
+      if (!selectedCamera) throw new Error('No camera selected');
 
-      // Create config
       const config: WebcamInitData = {
         device: selectedCamera,
         element: {
@@ -68,7 +59,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
         },
       };
 
-      // Ensure the resolution preset exists
       const allResolutions = this.cameraUtilsService.getAllResolutionsPresets();
       if (!(config.config.present in allResolutions)) {
         throw new WebcamInitError(
@@ -76,58 +66,53 @@ export class HomePage implements AfterViewInit, OnDestroy {
         );
       }
 
-      // Start the camera
       await this.cameraUtilsService.startCamera(config);
 
-      // Set current media stream to video element source
       const mediaStream = this.cameraUtilsService.getMediaStream();
-      if (!mediaStream) {
-        throw new Error('Failed to get media stream');
-      }
+      if (!mediaStream) throw new Error('Failed to get media stream');
 
       this.videoElement.nativeElement.srcObject = mediaStream;
       this.videoElement.nativeElement.onloadedmetadata = () => {
         this.videoElement.nativeElement.play();
       };
     } catch (error: any) {
-      console.error('Error setting up camera:', error);
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Close modal and pass the error message back
-      await this.modalController.dismiss(
-        { errorMessage: error.message },
-        'cancel'
-      );
-
-      if (error instanceof WebcamInitError) {
-        // Handle specific webcam initialization errors here if needed
-        console.warn('Webcam initialization error:', error.message);
-      }
+      this.handleError(error);
     }
   }
 
   private async selectCamera(): Promise<CameraDevice | null> {
-    // Implement logic to select the best camera
-    const caemra = this.cameraUtilsService.selectCamera(FacingType.FRONT);
-    if (!caemra) {
+    const cameraDevices = this.cameraUtilsService.getAvailableDevices();
+    if (cameraDevices.length === 0) {
+      throw new Error('No camera devices found');
+    }
+
+    const camera = this.cameraUtilsService.selectCamera(FacingType.FRONT);
+    if (!camera) {
       throw new Error('No camera found');
     }
 
-    return caemra;
+    return camera;
   }
 
-  /**
-   * Captures an image from the current video stream.
-   *
-   * @returns A promise that resolves when the image has been captured.
-   * The promise resolves to `undefined`.
-   */
-  async captureImage(): Promise<void> {
+  async takePicture(): Promise<void> {
     try {
       this.imageDataUrl = await this.cameraUtilsService.takePicture();
       console.log('Captured Image Data URL:', this.imageDataUrl);
     } catch (error) {
       console.error('Error capturing image:', error);
+    }
+  }
+
+  private handleError(error: any): void {
+    console.error('Error setting up camera:', error);
+    this.modalController
+      .dismiss({ errorMessage: error.message }, 'cancel')
+      .catch((dismissError) =>
+        console.error('Error dismissing modal:', dismissError)
+      );
+
+    if (error instanceof WebcamInitError) {
+      console.warn('Webcam initialization error:', error.message);
     }
   }
 
